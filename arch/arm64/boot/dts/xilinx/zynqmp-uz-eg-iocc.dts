@@ -1,0 +1,188 @@
+/*
+ * DTS file for ZynqMP UltraZed-EG Carrier Board
+ *
+ * Copyright 2019 (C), Istituto Italiano di Tecnologia
+ * Electronic Design Laboratory
+ *
+ * Written by Andrea Merello <andrea.merello@gmail.com>
+ *
+ * Based on
+ *   dts file for Xilinx ZynqMP ZCU102 RevA
+ *   (C) Copyright 2015, Xilinx, Inc.
+ *   Michal Simek <michal.simek@xilinx.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ */
+
+/dts-v1/;
+#include "zynqmp-uz-eg-som.dtsi"
+
+/ {
+	aliases {
+		spi0 = &qspi;
+		serial0 = &uart0;
+		serial1 = &uart1;
+	};
+
+	chosen {
+		bootargs = "earlycon clk_ignore_unused";
+		stdout-path = "serial0:115200n8";
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		user_ps {
+			label = "user";
+			gpios = <&gpio 31 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
+		};
+	};
+};
+
+/* TODO dpaux generator? */
+
+&gem3 {
+	status = "okay";
+};
+
+&i2c_cc {
+	24aa025e48t@a2 {
+		compatible = "microchip,24c02";
+		reg = <0x51>;
+	};
+};
+
+&gpio {
+	status = "okay";
+};
+
+&gpu {
+	status = "okay";
+};
+
+&pinctrl0 {
+	status = "okay";
+};
+
+&rtc {
+	status = "okay";
+};
+
+&sata {
+	ceva,p0-burst-params = /bits/ 8 <0x13 0x08 0x4A 0x06>;
+	ceva,p0-cominit-params = /bits/ 8 <0x18 0x40 0x18 0x28>;
+	ceva,p0-comwake-params = /bits/ 8 <0x06 0x14 0x08 0x0E>;
+	ceva,p0-retry-params = /bits/ 16 <0x96A4 0x3FFC>;
+
+	ceva,p1-burst-params = /bits/ 8 <0x13 0x08 0x4A 0x06>;
+	ceva,p1-cominit-params = /bits/ 8 <0x18 0x40 0x18 0x28>;
+	ceva,p1-comwake-params = /bits/ 8 <0x06 0x14 0x08 0x0E>;
+	ceva,p1-retry-params = /bits/ 16 <0x96A4 0x3FFC>;
+
+	status = "okay";
+	phy-names = "sata-phy";
+	phys = <&lane1 PHY_TYPE_SATA 1 1 125000000>;
+};
+
+&sdhci1 {
+	clock-frequency = <199998000>;
+	max-frequency = <50000000>;
+	no-1-8-v;
+	status = "okay";
+	xlnx,mio_bank = <0x1>;
+};
+
+&serdes {
+	status = "okay";
+};
+
+&uart0 {
+	device_type = "serial";
+	port-number = <0>;
+	status = "okay";
+	u-boot,dm-pre-reloc ;
+};
+
+&uart1 {
+	device_type = "serial";
+	port-number = <1>;
+	status = "okay";
+	u-boot,dm-pre-reloc ;
+};
+
+&usb0 {
+	status = "okay";
+};
+
+&dwc3_0 {
+	status = "okay";
+	snps,usb3_lpm_capable;
+	phy-names = "usb3-phy";
+	phys = <&lane0 PHY_TYPE_USB3 0 0 26000000>;
+	maximum-speed = "super-speed";
+};
+
+&watchdog0 {
+	status = "okay";
+};
+
+&ams_ps {
+	status = "okay";
+};
+&ams_pl {
+	status = "okay";
+};
+&xilinx_ams {
+	status = "okay";
+};
+&lpd_dma_chan1 {
+	status = "okay";
+};
+&lpd_dma_chan2 {
+	status = "okay";
+};
+&lpd_dma_chan3 {
+	status = "okay";
+};
+&lpd_dma_chan4 {
+	status = "okay";
+};
+&lpd_dma_chan5 {
+	status = "okay";
+};
+&lpd_dma_chan6 {
+	status = "okay";
+};
+&lpd_dma_chan7 {
+	status = "okay";
+};
+&lpd_dma_chan8 {
+	status = "okay";
+};
+&fpd_dma_chan1 {
+	status = "okay";
+};
+&fpd_dma_chan2 {
+	status = "okay";
+};
+&fpd_dma_chan3 {
+	status = "okay";
+};
+&fpd_dma_chan4 {
+	status = "okay";
+};
+&fpd_dma_chan5 {
+	status = "okay";
+};
+&fpd_dma_chan6 {
+	status = "okay";
+};
+&fpd_dma_chan7 {
+	status = "okay";
+};
+&fpd_dma_chan8 {
+	status = "okay";
+};
