@@ -1,0 +1,182 @@
+/*
+ * DTS file for ZynqMP UltraZed-EG SOM
+ *
+ * Copyright 2019 (C), Istituto Italiano di Tecnologia
+ * Electronic Design Laboratory
+ *
+ * Written by Andrea Merello <andrea.merello@gmail.com>
+ *
+ * Based on
+ *   dts file for Xilinx ZynqMP ZCU102 RevA
+ *   (C) Copyright 2015, Xilinx, Inc.
+ *   Michal Simek <michal.simek@xilinx.com>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ */
+
+/include/ "zynqmp.dtsi"
+/include/ "zynqmp-clk-ccf.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pinctrl/pinctrl-zynqmp.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/phy/phy.h>
+/ {
+	aliases {
+		ethernet0 = &gem3;
+	};
+	memory {
+		device_type = "memory";
+		reg = <0x0 0x0 0x0 0x80000000>;
+	};
+
+	emmc_pwrseq: pwrseq {
+		compatible = "mmc-pwrseq-emmc";
+		reset-gpios = <&gpio_i2c 0 GPIO_ACTIVE_LOW>;
+	};
+};
+
+&qspi {
+	status = "okay";
+	is-dual = <1>;
+	flash@0 {
+		compatible = "n25q512a","micron,m25p80";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		reg = <0x0>;
+		spi-tx-bus-width=<1>;
+		spi-rx-bus-width=<4>;
+		spi-max-frequency = <108000000>;
+		partition@qspi-boot {
+			label = "qspi-boot";
+			reg = <0x00000000 0x01360000>;
+		};
+		partition@qspi-bootenv {
+			label = "qspi-bootenv";
+			reg = <0x01360000 0x00040000>;
+		};
+		partition@qspi-kernel {
+			label = "qspi-kernel";
+			reg = <0x013a0000 0x01700000>;
+		};
+	};
+};
+
+/* MTFC8 emmc */
+&sdhci0 {
+	clock-frequency = <199998000>;
+	status = "okay";
+	xlnx,mio_bank = <0x0>;
+	mmc-pwrseq = <&emmc_pwrseq>;
+};
+
+&i2c1 {
+	clock-frequency = <400000>;
+	status = "okay";
+	at32c02@50 {
+		compatible = "at24,24c02";
+		reg = <0x50>;
+	};
+	tca9543apwr@70 {
+		compatible = "nxp,pca9543";
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+		reg = <0x70>;
+		interrupt-parent = <&gpio_i2c>;
+		interrupts = <4 IRQ_TYPE_EDGE_FALLING>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		reset-gpios = <&gpio_i2c 6 GPIO_ACTIVE_LOW>;
+		i2c_cc: i2c@0 {
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+			reg = <0x0>;
+		};
+		i2c_pmbus: i2c@1 {
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+			reg = <0x1>;
+		};
+	};
+	gpio_i2c: tca9534pwr@20 {
+		compatible = "nxp,pca9534";
+		reg = <0x20>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells =<2>;
+		interrupt-parent = <&gpio>;
+		interrupts = <23 IRQ_TYPE_EDGE_FALLING>;
+		usb_rst {
+			gpio-hog;
+			gpios = <1 0>;
+			output-high;
+			line-name = "usb0_rst_n";
+		};
+		gem_pdn {
+			gpio-hog;
+			gpios = <3 0>;
+			output-high;
+			line-name = "gem3_pdn_n";
+		};
+		cc_rst {
+			gpio-hog;
+			gpios = <7 0>;
+			output-high;
+			line-name = "cc_rst_n";
+		};
+	};
+};
+
+&gem3 {
+	phy-mode = "rgmii-id";
+	xlnx,ptp-enet-clock = <0x0>;
+	/* dp83867 PHY */
+	phy0: dp83867@9 {
+		reset-gpios = <&gpio_i2c 2 GPIO_ACTIVE_LOW>;
+		reg = <9>;
+		ti,rx-internal-delay = <0x5>;
+		ti,tx-internal-delay = <0x5>;
+		ti,fifo-depth = <0x1>;
+	};
+};
+
+/* ULPI USB3320 */
+&usb0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usb0_default>;
+};
+
+&dwc3_0 {
+	dr_mode = "host";
+};
+
+&pinctrl0 {
+	status = "okay";
+	pinctrl_usb0_default: usb0-default {
+		mux {
+			groups = "usb0_0_grp";
+			function = "usb0";
+		};
+
+		conf {
+			groups = "usb0_0_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			io-standard = <IO_STANDARD_LVCMOS18>;
+		};
+
+		conf-rx {
+			pins = "MIO52", "MIO53", "MIO55";
+			bias-high-impedance;
+		};
+
+		conf-tx {
+			pins = "MIO54", "MIO56", "MIO57", "MIO58", "MIO59",
+			"MIO60", "MIO61", "MIO62", "MIO63";
+			bias-disable;
+		};
+	};
+};
