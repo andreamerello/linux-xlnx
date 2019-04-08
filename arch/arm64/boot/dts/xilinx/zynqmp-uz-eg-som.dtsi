@@ -37,6 +37,12 @@
 		compatible = "mmc-pwrseq-emmc";
 		reset-gpios = <&gpio_i2c 0 GPIO_ACTIVE_LOW>;
 	};
+
+	usb_phy0: phy0 {
+		compatible = "usb-nop-xceiv";
+		#phy-cells = <0>;
+		reset-gpios = <&gpio_i2c 1 GPIO_ACTIVE_LOW>;
+	};
 };
 
 &qspi {
@@ -110,12 +116,6 @@
 		#interrupt-cells =<2>;
 		interrupt-parent = <&gpio>;
 		interrupts = <23 IRQ_TYPE_EDGE_FALLING>;
-		usb_rst {
-			gpio-hog;
-			gpios = <1 0>;
-			output-high;
-			line-name = "usb0_rst_n";
-		};
 		gem_pdn {
 			gpio-hog;
 			gpios = <3 0>;
@@ -153,6 +153,7 @@
 
 &dwc3_0 {
 	dr_mode = "host";
+	usb-phy = <&usb_phy0>;
 };
 
 &pinctrl0 {
