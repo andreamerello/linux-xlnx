@@ -135,6 +135,7 @@
 	phy-mode = "rgmii-id";
 	xlnx,ptp-enet-clock = <0x0>;
 	/* dp83867 PHY */
+	phy-handle = <&phy0>;
 	phy0: dp83867@9 {
 		reset-gpios = <&gpio_i2c 2 GPIO_ACTIVE_LOW>;
 		reg = <9>;

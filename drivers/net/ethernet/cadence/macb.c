@@ -3606,6 +3606,7 @@ static int macb_probe(struct platform_device *pdev)
 	struct device_node *phy_node;
 	const struct macb_config *macb_config = NULL;
 	struct clk *pclk, *hclk = NULL, *tx_clk = NULL, *rx_clk = NULL;
+	int reset_gpio = -ENOENT;
 	unsigned int queue_mask, num_queues;
 	struct macb_platform_data *pdata;
 	bool native_io;
@@ -3616,6 +3617,14 @@ static int macb_probe(struct platform_device *pdev)
 	const char *mac;
 	struct macb *bp;
 	int err;
+
+	/* check for GPIO reset pin now, in case we need to defer the probe.. */
+	phy_node = of_parse_phandle(np, "phy-handle", 0);
+	if (phy_node) {
+		reset_gpio = of_get_named_gpio(phy_node, "reset-gpios", 0);
+		if (reset_gpio == -EPROBE_DEFER)
+			return -EPROBE_DEFER;
+	}
 
 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	mem = devm_ioremap_resource(&pdev->dev, regs);
@@ -3705,7 +3714,6 @@ static int macb_probe(struct platform_device *pdev)
 		macb_get_hwaddr(bp);
 
 	/* Power up the PHY if there is a GPIO reset */
-	phy_node = of_parse_phandle(np, "phy-handle", 0);
 	if (!phy_node && of_phy_is_fixed_link(np)) {
 		err = of_phy_register_fixed_link(np);
 		if (err < 0) {
@@ -3715,10 +3723,12 @@ static int macb_probe(struct platform_device *pdev)
 		phy_node = of_node_get(np);
 		bp->phy_node = phy_node;
 	} else {
-		int gpio = of_get_named_gpio(phy_node, "reset-gpios", 0);
-		if (gpio_is_valid(gpio)) {
-			bp->reset_gpio = gpio_to_desc(gpio);
-			gpiod_direction_output(bp->reset_gpio, 1);
+		if (gpio_is_valid(reset_gpio)) {
+			devm_gpio_request(&pdev->dev, reset_gpio, "gem_phy_reset");
+			bp->reset_gpio = gpio_to_desc(reset_gpio);
+			gpiod_direction_output(bp->reset_gpio, 0);
+			msleep(1);
+			gpiod_set_value_cansleep(bp->reset_gpio, 1);
 		}
 	}
 
