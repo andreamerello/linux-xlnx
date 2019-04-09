@@ -40,6 +40,20 @@
 			linux,default-trigger = "heartbeat";
 		};
 	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		sw5 {
+			label = "sw5";
+			gpios = <&gpio 26 GPIO_ACTIVE_HIGH>;
+			gpio-key,wakeup;
+			linux,code = <240>; /* key unknown */
+			autorepeat;
+		};
+	};
 };
 
 /* TODO dpaux generator? */
