@@ -191,6 +191,7 @@
 	pinctrl-0 = <&pinctrl_sdhci1_default>;
 	clock-frequency = <199998000>;
 	max-frequency = <50000000>;
+	bus-width = <0x4>;
 	no-1-8-v;
 	status = "okay";
 	xlnx,mio_bank = <0x1>;
